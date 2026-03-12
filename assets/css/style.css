@@ -1,0 +1,11 @@
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f6f8fb;color:#1f2937}
+.container{max-width:1100px;margin:0 auto;padding:24px}.nav{background:#111827;color:#fff;padding:14px 0}
+.nav a{color:#fff;text-decoration:none;margin-right:16px}.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,.06);margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+input,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;box-sizing:border-box;margin-bottom:12px}
+button,.btn{background:#111827;color:#fff;border:none;border-radius:10px;padding:12px 16px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-secondary{background:#e5e7eb;color:#111827}.table{width:100%;border-collapse:collapse;background:#fff}
+.table th,.table td{padding:12px;border-bottom:1px solid #eee;text-align:left}.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+.notice{padding:12px;border-radius:10px;margin-bottom:16px}.notice-success{background:#ecfdf5;color:#065f46}.notice-error{background:#fef2f2;color:#991b1b}
+.hero{padding:60px 0}.codebox{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;overflow:auto}
+@media(max-width:900px){.grid,.grid-2{grid-template-columns:1fr}}
