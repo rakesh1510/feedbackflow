@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Feedback Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h2>Feedback Trend</h2>
+<canvas id="chart" width="600" height="280"></canvas>
+<script>
+fetch('/feedback/analytics.php')
+  .then(()=>{})
+  .catch(()=>{});
+</script>
+<p>This is a starter chart file. Connect it to your analytics endpoint as needed.</p>
+</body>
+</html>
