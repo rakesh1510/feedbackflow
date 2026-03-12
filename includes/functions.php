@@ -3,12 +3,6 @@ function e($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-function json_response($data) {
-    header('Content-Type: application/json');
-    echo json_encode($data);
-    exit;
-}
-
 function is_logged_in() {
     return !empty($_SESSION['company_id']);
 }
@@ -29,32 +23,58 @@ function generate_site_key($length = 24) {
     return $key;
 }
 
-function analyze_feedback($text) {
-    $text = strtolower((string)$text);
-    $sentiment = 'neutral';
-
-    if (str_contains($text, 'slow') || str_contains($text, 'bad') || str_contains($text, 'bug') || str_contains($text, 'error')) {
-        $sentiment = 'negative';
+function allowed_request_for_domain($domain) {
+    $domain = strtolower(trim((string)$domain));
+    if ($domain === '') {
+        return false;
     }
 
-    if (str_contains($text, 'great') || str_contains($text, 'love') || str_contains($text, 'good')) {
-        $sentiment = 'positive';
+    $hosts = [];
+
+    if (!empty($_SERVER['HTTP_ORIGIN'])) {
+        $host = parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST);
+        if ($host) $hosts[] = strtolower($host);
     }
 
-    return $sentiment;
+    if (!empty($_SERVER['HTTP_REFERER'])) {
+        $host = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
+        if ($host) $hosts[] = strtolower($host);
+    }
+
+    if (empty($hosts)) {
+        return true;
+    }
+
+    foreach ($hosts as $host) {
+        if ($host === $domain || str_ends_with($host, '.' . $domain)) {
+            return true;
+        }
+    }
+    return false;
 }
 
-function send_feedback_alert($email, $message) {
-    if (!defined('ENABLE_EMAIL_ALERTS') || ENABLE_EMAIL_ALERTS !== true) {
+function send_feedback_alert($toEmail, $projectName, $rating, $message, $pageUrl) {
+    if (!defined('ENABLE_EMAIL_ALERTS') || !ENABLE_EMAIL_ALERTS || !$toEmail) {
         return false;
     }
 
-    if (!$email) {
-        return false;
-    }
+    $from = defined('MAIL_FROM') ? MAIL_FROM : 'noreply@localhost';
+    $subject = 'New feedback received - ' . $projectName;
+    $body = "Project: {$projectName}\nRating: {$rating}\nPage: {$pageUrl}\n\nMessage:\n{$message}";
+    $headers = 'From: ' . $from;
 
-    $subject = 'New Feedback Received';
-    $headers = 'From: ' . MAIL_FROM;
-    return @mail($email, $subject, $message, $headers);
+    return @mail($toEmail, $subject, $body, $headers);
+}
+
+function get_project_widget_settings(PDO $pdo, int $projectId): array {
+    $stmt = $pdo->prepare("SELECT * FROM widget_settings WHERE project_id = ?");
+    $stmt->execute([$projectId]);
+    $settings = $stmt->fetch();
+
+    return $settings ?: [
+        'button_text' => 'Feedback',
+        'button_color' => '#0b1730',
+        'position' => 'right'
+    ];
 }
 ?>

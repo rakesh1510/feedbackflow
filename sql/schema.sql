@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS companies (
     company_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    plan VARCHAR(50) DEFAULT 'starter',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -19,13 +20,22 @@ CREATE TABLE IF NOT EXISTS projects (
 
 CREATE TABLE IF NOT EXISTS feedback (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    project_id INT NULL,
-    message TEXT NOT NULL,
+    project_id INT NOT NULL,
     rating INT DEFAULT 5,
-    sentiment VARCHAR(20) DEFAULT 'neutral',
+    message TEXT NOT NULL,
+    page_url TEXT NULL,
     user_name VARCHAR(255) NULL,
     user_email VARCHAR(255) NULL,
-    page_url TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS widget_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL UNIQUE,
+    button_text VARCHAR(100) DEFAULT 'Feedback',
+    button_color VARCHAR(20) DEFAULT '#0b1730',
+    position VARCHAR(20) DEFAULT 'right',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );

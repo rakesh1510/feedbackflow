@@ -5,21 +5,36 @@ require_once 'includes/functions.php';
 
 $companyId = $_SESSION['company_id'];
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM projects WHERE company_id=?");
+$stmt = $pdo->prepare("SELECT COUNT(*) AS total_projects FROM projects WHERE company_id = ?");
 $stmt->execute([$companyId]);
-$totalProjects = $stmt->fetchColumn();
+$totalProjects = $stmt->fetch()['total_projects'] ?? 0;
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM feedback f LEFT JOIN projects p ON p.id=f.project_id WHERE p.company_id=? OR f.project_id IS NULL");
+$stmt = $pdo->prepare("SELECT COUNT(f.id) AS total_feedback
+    FROM feedback f
+    JOIN projects p ON p.id = f.project_id
+    WHERE p.company_id = ?");
 $stmt->execute([$companyId]);
-$totalFeedback = $stmt->fetchColumn();
+$totalFeedback = $stmt->fetch()['total_feedback'] ?? 0;
 
-$stmt = $pdo->prepare("SELECT ROUND(AVG(rating),1) FROM feedback f LEFT JOIN projects p ON p.id=f.project_id WHERE p.company_id=? OR f.project_id IS NULL");
+$stmt = $pdo->prepare("SELECT AVG(f.rating) AS avg_rating
+    FROM feedback f
+    JOIN projects p ON p.id = f.project_id
+    WHERE p.company_id = ?");
 $stmt->execute([$companyId]);
-$avg = $stmt->fetchColumn() ?: 0;
+$avgRating = round((float)($stmt->fetch()['avg_rating'] ?? 0), 1);
+
+$stmt = $pdo->prepare("SELECT p.project_name, f.rating, f.message, f.created_at
+    FROM feedback f
+    JOIN projects p ON p.id = f.project_id
+    WHERE p.company_id = ?
+    ORDER BY f.created_at DESC
+    LIMIT 8");
+$stmt->execute([$companyId]);
+$latest = $stmt->fetchAll();
 ?>
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Dashboard</title><link rel="stylesheet" href="assets/css/style.css"></head>
-<body><div class="nav"><div class="container">
+<!doctype html><html><head><meta charset="utf-8"><title>Dashboard</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<div class="nav"><div class="container">
 <a href="dashboard.php"><strong>FeedbackFlow</strong></a>
 <a href="projects.php">Projects</a>
 <a href="feedback-list.php">Feedback</a>
@@ -30,12 +45,26 @@ $avg = $stmt->fetchColumn() ?: 0;
   <h1>Welcome, <?php echo e($_SESSION['company_name']); ?></h1>
   <div class="grid">
     <div class="card"><h3>Projects</h3><div class="stat"><?php echo e($totalProjects); ?></div></div>
-    <div class="card"><h3>Total Feedback</h3><div class="stat"><?php echo e($totalFeedback); ?></div></div>
-    <div class="card"><h3>Average Rating</h3><div class="stat"><?php echo e($avg); ?></div></div>
+    <div class="card"><h3>Total feedback</h3><div class="stat"><?php echo e($totalFeedback); ?></div></div>
+    <div class="card"><h3>Average rating</h3><div class="stat"><?php echo e($avgRating); ?></div></div>
   </div>
   <div class="card">
-    <h2>Quick Links</h2>
-    <p><a class="btn" href="projects.php">Manage Projects</a> <a class="btn btn-secondary" href="feedback-list.php">View Feedback</a></p>
+    <h2>Latest feedback</h2>
+    <?php if (!$latest): ?>
+      <p>No feedback yet. Create a project and install your widget snippet.</p>
+    <?php else: ?>
+      <table class="table">
+        <tr><th>Project</th><th>Rating</th><th>Message</th><th>Date</th></tr>
+        <?php foreach ($latest as $row): ?>
+          <tr>
+            <td><?php echo e($row['project_name']); ?></td>
+            <td><?php echo e($row['rating']); ?></td>
+            <td><?php echo e($row['message']); ?></td>
+            <td><?php echo e($row['created_at']); ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </table>
+    <?php endif; ?>
   </div>
 </div>
 </body></html>
